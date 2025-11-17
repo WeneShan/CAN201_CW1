@@ -6,7 +6,6 @@ import hashlib
 import os
 import time
 import sys
-import mmap
 import logging
 from typing import Optional, Dict, Any, Tuple, Generator
 from pathlib import Path
@@ -181,19 +180,17 @@ class FileBlockProcessor:
 
     @staticmethod
     def read_blocks_single_thread(total_blocks: int, block_size: int,
-                                  file_path: Path, file_size: int) -> Generator[Tuple[int, bytes], None, None]:
-        """Read file blocks in a single thread using memory mapping"""
-        with open(file_path, 'rb') as f:
-            with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mapped_file:
+                                    file_path: Path, file_size: int) -> Generator[Tuple[int, bytes], None, None]:
+            """Read file blocks in a single thread using standard file I/O"""
+            with open(file_path, 'rb') as f:
                 for block_idx in range(total_blocks):
                     offset = block_idx * block_size
                     remaining = file_size - offset
                     read_size = min(block_size, remaining)
 
-                    mapped_file.seek(offset)
-                    data = mapped_file.read(read_size)
+                    f.seek(offset)
+                    data = f.read(read_size)
                     yield (block_idx, data)
-
 
 class ProgressBar:
     """Single-line dynamic progress bar for file upload"""
@@ -368,7 +365,8 @@ class STEPFileClient:
 
     def __init__(self, server_ip: str, server_port: int):
         self.server_ip = server_ip
-        self.server_port = server_port
+        self.server_port = 1379
+        # The user can not change the port which may cause insercurity of server side!!!
         self.socket = None
         self.auth_service = None
         self.file_transfer_service = None
@@ -422,51 +420,45 @@ class STEPFileClient:
 
 
 def main():
-    """Main function matching report description"""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--ip", default='127.0.0.1', help="Server IP address")
+    parser.add_argument("--server_ip", default="127.0.0.1", help="Server IP address (default: 127.0.0.1)")
     parser.add_argument("--port", default=SERVER_PORT, type=int, help="Server port")
+    parser.add_argument("--id", required=True, help="Student ID (username)")
+    parser.add_argument("-f", "--file", required=True, help="Path to a file")
+    parser.add_argument("--key", help="Custom file key (optional)")
     args = parser.parse_args()
 
-    # Get server IP from user input
-    server_ip = input("Enter server IP: ").strip() or args.ip
+    # 直接用命令行里的 IP
+    server_ip = args.server_ip
 
-    # Initialize and connect client
+    # 初始化并连接
     client = STEPFileClient(server_ip, args.port)
     if not client.connect():
         return
 
-    # Perform login
-    while True:
-        student_id = input("Enter student ID (username): ").strip()
-        if not student_id:
-            print("Invalid student ID, please enter again")
-            continue
-        if client.login(student_id):
-            break
-        print("Login failed. Please try again.")
+    # 登录（用命令行里的 --id）
+    if not client.login(args.id):
+        print("Login failed.")
+        client.close()
+        return
 
-    # Get file path
-    while True:
-        file_path = input("Enter file path to upload (enter 'q' to exit): ").strip()
-        if file_path.lower() == 'q':
-            client.close()
-            return
+    # 校验文件路径
+    file_path = args.file
+    if not os.path.exists(file_path) or not os.path.isfile(file_path):
+        print(f"Error: File not found: {file_path}")
+        client.close()
+        return
 
-        if os.path.exists(file_path) and os.path.isfile(file_path):
-            file_size = os.path.getsize(file_path)
-            if file_size == 0:
-                print(f"Error: Cannot upload 0-byte file")
-                continue
-            print(f"Valid file: {file_path} (Size: {file_size} bytes)")
-            break
-        else:
-            print(f"Invalid path: '{file_path}'")
+    file_size = os.path.getsize(file_path)
+    if file_size == 0:
+        print("Error: Cannot upload 0-byte file")
+        client.close()
+        return
 
-    # Get optional custom key
-    custom_key = input("Enter custom file key (optional, press enter to skip): ").strip() or None
+    print(f"Valid file: {file_path} (Size: {file_size} bytes)")
 
-    # Execute upload
+    custom_key = args.key if args.key else None
+
     print("\nStarting file upload...")
     result = client.upload_file(file_path, custom_key)
     print(f"\nFinal result: {'Success' if result else 'Failed'}")
@@ -474,6 +466,7 @@ def main():
     client.close()
 
 
+
 if __name__ == "__main__":
 
-    main()
+    main() 
