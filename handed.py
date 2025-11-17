@@ -11,7 +11,7 @@ import logging
 from typing import Optional, Dict, Any, Tuple, Generator
 from pathlib import Path
 
-# Protocol constants (as in report)
+# Protocol constants
 OP_SAVE, OP_DELETE, OP_GET, OP_UPLOAD, OP_DOWNLOAD, OP_BYE, OP_LOGIN, OP_ERROR = (
     'SAVE', 'DELETE', 'GET', 'UPLOAD', 'DOWNLOAD', 'BYE', 'LOGIN', "ERROR"
 )
@@ -201,14 +201,17 @@ class ProgressBar:
     PROGRESS_BAR_LENGTH = 50
 
     @staticmethod
-    def update(completed: int, total: int, start_time: float):
+    def update(completed: int, total: int, start_time: float, block_size: int = 1024 * 1024):
         """Update and display progress bar dynamically"""
         if total == 0:
             return
 
         progress = (completed / total) * 100
         elapsed_time = time.time() - start_time
-        speed = (completed * 1024 * 1024) / elapsed_time if elapsed_time > 0 else 0
+
+        # 更准确的速度计算（MB/s）
+        transferred_bytes = completed * block_size
+        speed = transferred_bytes / (1024 * 1024 * elapsed_time) if elapsed_time > 1 else 0
 
         filled_length = int(ProgressBar.PROGRESS_BAR_LENGTH * completed // total)
         bar = '█' * filled_length + '░' * (ProgressBar.PROGRESS_BAR_LENGTH - filled_length)
@@ -332,7 +335,7 @@ class FileTransferService:
                     ProgressBar.update(blocks_uploaded, self.total_blocks, start_time)
 
             blocks_uploaded += 1
-            ProgressBar.update(blocks_uploaded, self.total_blocks, start_time)
+            ProgressBar.update(blocks_uploaded, self.total_blocks, start_time, self.block_size)
 
             # MD5 verification as described in protocol
             if FIELD_MD5 in response:
