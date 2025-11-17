@@ -1,0 +1,68 @@
+{
+  "test_name": "C1",
+  "test_description": "文件大小性能测试（不同大小文件）",
+  "start_time": "2025-11-15T02:43:29.914317",
+  "test_cases": [
+    {
+      "name": "C1_Upload_1024_bytes",
+      "file_size": 1024,
+      "duration": 0.12418389320373535,
+      "speed_bytes_per_sec": 8245.835861499621,
+      "speed_mbps": 0.06291073502731034,
+      "local_md5": "d47b127bc2de2d687ddc82dac354c415",
+      "upload_success": true,
+      "return_code": 0
+    },
+    {
+      "name": "C1_Upload_102400_bytes",
+      "file_size": 102400,
+      "duration": 0.19942021369934082,
+      "speed_bytes_per_sec": 513488.5681868993,
+      "speed_mbps": 3.9176068739845222,
+      "local_md5": "173f6fadb4dc99ce76c937c917d81454",
+      "upload_success": true,
+      "return_code": 0
+    },
+    {
+      "name": "C1_Upload_1048576_bytes",
+      "file_size": 1048576,
+      "duration": 0.857712984085083,
+      "speed_bytes_per_sec": 1222525.50614995,
+      "speed_mbps": 9.327129410934067,
+      "local_md5": "d49af889a83657f99e8fc38701dbaa07",
+      "upload_success": true,
+      "return_code": 0
+    },
+    {
+      "name": "C1_Upload_10485760_bytes",
+      "file_size": 10485760,
+      "duration": 6.914570331573486,
+      "speed_bytes_per_sec": 1516473.1136104953,
+      "speed_mbps": 11.569771679767573,
+      "local_md5": "c3354ff14261f9387049d5cd2a60103f",
+      "upload_success": true,
+      "return_code": 0
+    },
+    {
+      "name": "C1_Upload_52428800_bytes",
+      "file_size": 52428800,
+      "duration": 38.07207369804382,
+      "speed_bytes_per_sec": 1377093.3628628124,
+      "speed_mbps": 10.506388571646212,
+      "local_md5": "06e4d5a921b4a51ac6b0650955e1beb4",
+      "upload_success": true,
+      "return_code": 0
+    }
+  ],
+  "performance_analysis": {
+    "total_files_tested": 5,
+    "successful_uploads": 5,
+    "average_speed_mbps": 7.076761454271937,
+    "max_speed_mbps": 11.569771679767573,
+    "min_speed_mbps": 0.06291073502731034,
+    "speed_std_dev": 4.903774020206487
+  },
+  "status": "PASSED",
+  "final_result": "多文件大小上传成功，性能数据可用",
+  "end_time": "2025-11-15T02:44:16.322736"
+}
