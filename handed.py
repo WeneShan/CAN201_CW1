@@ -1,9 +1,3 @@
-#!/usr/bin/env python3
-"""
-STEP File Client - Matching Report Description
-Maintaining the professional quality while aligning with report structure.
-"""
-
 import argparse
 import socket
 import json
@@ -479,4 +473,5 @@ def main():
 
 
 if __name__ == "__main__":
+
     main()
